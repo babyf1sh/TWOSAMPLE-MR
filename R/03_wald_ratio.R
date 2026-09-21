@@ -1,48 +1,105 @@
+```r
 # 03_wald_ratio.R
-# Calculate SNP-specific Wald ratios
+# Version 2
+# Automatically match eQTL and GWAS data
+# and calculate SNP-specific Wald ratios
 
-# SNPs used as instrumental variables
-snps <- c(
-  "rs10151793",
-  "rs59434518"
-)
+library(dplyr)
+library(TwoSampleMR)
 
-# Exposure associations:
-# SNP -> DHRS4-AS1 expression
-beta_x <- c(
-  -0.956368,
-  -0.766910
-)
+# --------------------------------------------------
+# 1. Check input data
+# --------------------------------------------------
 
-se_x <- c(
-  0.0713899,
-  0.0807102
-)
-
-# Outcome associations:
+# eqtl_dat:
+# SNP -> gene expression
+#
+# chd_out_dat:
 # SNP -> coronary heart disease
-beta_y <- c(
-  0.005636,
-  0.008426
+
+eqtl_dat
+chd_out_dat
+
+
+# --------------------------------------------------
+# 2. Find SNPs shared by exposure and outcome data
+# --------------------------------------------------
+
+common_snps <- intersect(
+  eqtl_dat$SNP,
+  chd_out_dat$SNP
 )
 
-se_y <- c(
-  0.0218646,
-  0.0217027
+cat("Number of shared SNPs:", length(common_snps), "\n")
+
+common_snps
+
+
+# --------------------------------------------------
+# 3. Keep only shared SNPs
+# --------------------------------------------------
+
+eqtl_matched <- eqtl_dat %>%
+  filter(SNP %in% common_snps)
+
+gwas_matched <- chd_out_dat %>%
+  filter(SNP %in% common_snps)
+
+
+# --------------------------------------------------
+# 4. Convert eQTL data to TwoSampleMR format
+# --------------------------------------------------
+
+exposure_dat <- format_data(
+  eqtl_matched,
+  type = "exposure",
+  snp_col = "SNP",
+  beta_col = "beta",
+  se_col = "se",
+  effect_allele_col = "effect_allele",
+  other_allele_col = "other_allele",
+  pval_col = "pval"
 )
 
-# Calculate the Wald ratio for each SNP
-wald_ratio <- beta_y / beta_x
 
-# Create a summary table
-mr_dat <- data.frame(
-  SNP = snps,
-  beta_x = beta_x,
-  se_x = se_x,
-  beta_y = beta_y,
-  se_y = se_y,
-  wald_ratio = wald_ratio
+# --------------------------------------------------
+# 5. GWAS outcome data
+# --------------------------------------------------
+
+outcome_dat <- gwas_matched
+
+
+# --------------------------------------------------
+# 6. Harmonise exposure and outcome data
+# --------------------------------------------------
+
+harmonised_dat <- harmonise_data(
+  exposure_dat = exposure_dat,
+  outcome_dat = outcome_dat,
+  action = 2
 )
 
-# Display the results
-mr_dat
+
+# --------------------------------------------------
+# 7. Calculate SNP-specific Wald ratios
+# --------------------------------------------------
+
+wald_results <- harmonised_dat %>%
+  mutate(
+    wald_ratio = beta.outcome / beta.exposure
+  ) %>%
+  select(
+    SNP,
+    beta.exposure,
+    se.exposure,
+    beta.outcome,
+    se.outcome,
+    wald_ratio
+  )
+
+
+# --------------------------------------------------
+# 8. Display results
+# --------------------------------------------------
+
+wald_results

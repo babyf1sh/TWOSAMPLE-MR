@@ -1,5 +1,5 @@
 # 01_load_eqtl.R
-# Load GTEx eQTL data and select the tissue-gene pair of interest
+# Load GTEx eQTL data anexists("gtex_eqtl")d select the tissue-gene pair of interest
 
 library(MRInstruments)
 library(dplyr)

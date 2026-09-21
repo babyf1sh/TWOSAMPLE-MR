@@ -1,18 +1,12 @@
 # 02_extract_gwas.R
-# Extract coronary heart disease GWAS associations for selected SNPs
+# Extract GWAS associations for SNPs selected from the eQTL data
 
 library(TwoSampleMR)
 
-# SNP instruments selected from the GTEx eQTL dataset
-snps <- c(
-  "rs10151793",
-  "rs59434518"
-)
+# Automatically obtain SNPs from the eQTL dataset
+snps <- eqtl_dat$SNP
 
 # Extract GWAS outcome associations
-# Outcome ID: ieu-a-7
-# Outcome: Coronary heart disease
-
 chd_out_dat <- extract_outcome_data(
   snps = snps,
   outcomes = "ieu-a-7",

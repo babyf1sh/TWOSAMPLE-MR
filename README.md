@@ -495,3 +495,22 @@ v3.0.0    IVW 尝试与数据问题诊断
 ```
 
 **项目最终版本：v3.0.0**
+
+
+***其中关于如何调用OPENGWAS数据
+1.登录或注册‘https://api.opengwas.io/profile/’以获取OPENGWAS API
+2.将JWT配置到R
+
+ieugwasr 1.1.0
+TwoSampleMR 0.7.9
+
+3.确认用户目录后创建.Renviron文件，文件中只写“OPENGWAS_JWT=你的JWT（也就是API）”
+
+normalizePath("~")
+file.edit("~/.Renviron")
+
+4.配置成功后session-restart R并测试是否有权限访问OPENGAWS
+
+ieugwasr::get_opengwas_jwt()
+ieugwasr::user()
+
